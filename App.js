@@ -6,9 +6,15 @@ import {
   TouchableOpacity,
   View,
   Clipboard,
-  Alert
+  Alert,
+  Dimensions,
 } from 'react-native';
 import { RNCamera } from 'react-native-camera';
+
+const { width, height } = Dimensions.get('window');
+const fieldY = 100;
+const fieldWidth = 200;
+const fieldHeight = 50;
 
 // disable 畫面上的 yellowBox 視窗
 console.disableYellowBox = true;
@@ -18,6 +24,7 @@ export default class App extends Component {
   render() {
     return (
       <View style={styles.container}>
+        <View style={styles.field}></View>
         <RNCamera
             ref={ref => {
               this.camera = ref;
@@ -31,24 +38,28 @@ export default class App extends Component {
               // 影像辨識拿到的資料
               console.log(t);
               if (t.textBlocks.length > 0) {
-                let keyPair = t.textBlocks[0].value;
-                // 自我 training 修正資料 xD
-                this.setState({
-                  text: keyPair.replace('D',0)
-                               .replace('o',0)
-                               .replace('O',0)
-                               .replace('U',0)
-                               .replace('H',4)
-                               .replace('Y',4)
-                               .replace('S',5)
-                               .replace('s',5)
-                               .replace('B',8)
-                               .replace('E',8)
-                               .replace('T',1)
-                               .replace(' ','')
-                               .replace('.','')
-                               .trim()
-                })
+                t.textBlocks.map((block) => {
+                  if (block.bounds.origin.y > fieldY && block.bounds.origin.y < (fieldY + fieldHeight)) {
+                    let keyPair = block.value.trim();
+                    // 自我 training 修正資料 xD
+                    this.setState({
+                      text: keyPair.replace('D',0)
+                                  .replace('o',0)
+                                  .replace('O',0)
+                                  .replace('U',0)
+                                  .replace('H',4)
+                                  .replace('Y',4)
+                                  .replace('S',5)
+                                  .replace('s',5)
+                                  .replace('B',8)
+                                  .replace('E',8)
+                                  .replace('T',1)
+                                  .replace(' ','')
+                                  .replace(' ','')
+                                  .replace('.','')
+                    })
+                  }
+                });
               }
             }}
         />
@@ -98,5 +109,15 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
     alignSelf: 'center',
     margin: 20
+  },
+  field: {
+    position: 'absolute',
+    top: fieldY,
+    left: (width - fieldWidth) / 2,
+    width: fieldWidth,
+    height: fieldHeight,
+    borderWidth: 3,
+    borderColor: 'blue',
+    zIndex: 1,
   }
 });
